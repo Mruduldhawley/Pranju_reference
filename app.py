@@ -111,7 +111,7 @@ def reformulate_json(data, style):
 def generate_references(urls,style):
     urls = urls.split()  # Split input into a list of URLs
     base_get_url = "https://www.mybib.com/api/autocite/search?q={}&sourceId=webpage"
-    references = ["REFERENCES\n"]
+    references = ["REFERENCES<hr>"]
     count = 1
     for url in urls:
         try:
@@ -121,13 +121,13 @@ def generate_references(urls,style):
                 url='https://www.mybib.com/api/autocite/reference',
                 json=reformulated_json_data
             )
-            formatted_reference = remove_html_tags(res.json().get("result", {}).get("formattedReferenceStr", ""))
+            formatted_reference = res.json().get("result", {}).get("formattedReferenceStr", "")
             references.append(f"{count}. {formatted_reference}")
             count += 1
         except Exception as e:
             references.append(f"Error processing URL {url}: {str(e)}")
 
-    return "\n".join(references)
+    return "<br>".join(references)
 
 # Gradio interface
 # def harvard_reference_app(input_text):
@@ -158,10 +158,9 @@ interface = gr.Interface(
             info="Select a citation style for your references."
         )
     ],
-    outputs="text",
+    outputs=gr.HTML(),
     title="Pranju❤️ Referencing Generator",
     description="Enter URLs to generate citations in the selected style."
 )
 
 interface.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 8080)))
-
