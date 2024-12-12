@@ -139,4 +139,4 @@ interface = gr.Interface(
     description="Enter URLs to generate Harvard-style references."
 )
 
-interface.launch()
+interface.launch(server_name="0.0.0.0",server_port=int(os.environ.get("PORT", 8080)))
