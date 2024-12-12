@@ -18,6 +18,7 @@ def reformulate_json(data):
         {"given": name["given"], "family": name["family"], "literal": None}
         for name in data["results"][0]["metadata"]["author"]
     ]
+    editors = [{"given": name["given"], "family": name["family"], "literal": None} for name in data["results"][0]["metadata"]["editor"]]
     issued_date = data["results"][0]["metadata"]["issued"]
     doi = data['results'][0].get('metadata', {}).get('doi', None)
     container_title = data['results'][0].get("metadata", {}).get("containerTitle", None)
@@ -33,7 +34,7 @@ def reformulate_json(data):
             "composer": [],
             "containerAuthor": [],
             "director": [],
-            "editor": [],
+            "editor": editors,
             "editorialDirector": [],
             "illustrator": [],
             "interviewer": [],
