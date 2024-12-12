@@ -12,7 +12,7 @@ def parse_and_modify_url(url):
 def remove_html_tags(text):
     return re.sub('<.*?>', '', text)
 
-def reformulate_json(data):
+def reformulate_json(data, style):
     # Extract relevant information from the original data
     authors = [
         {"given": name["given"], "family": name["family"], "literal": None}
@@ -103,12 +103,12 @@ def reformulate_json(data):
             "rawStr": None,
         },
         "sourceId": "webpage",
-        "styleId": "default-harvard"
+        "styleId": style
     }
 
     return reformulated_data
 
-def generate_harvard_references(urls):
+def generate_references(urls,style):
     urls = urls.split()  # Split input into a list of URLs
     base_get_url = "https://www.mybib.com/api/autocite/search?q={}&sourceId=webpage"
     references = ["REFERENCES\n"]
@@ -116,7 +116,7 @@ def generate_harvard_references(urls):
     for url in urls:
         try:
             original_data = requests.get(base_get_url.format(parse_and_modify_url(url))).json()
-            reformulated_json_data = reformulate_json(original_data)
+            reformulated_json_data = reformulate_json(original_data, style)
             res = requests.post(
                 url='https://www.mybib.com/api/autocite/reference',
                 json=reformulated_json_data
@@ -130,15 +130,38 @@ def generate_harvard_references(urls):
     return "\n".join(references)
 
 # Gradio interface
-def harvard_reference_app(input_text):
-    return generate_harvard_references(input_text)
+# def harvard_reference_app(input_text):
+#     return generate_harvard_references(input_text)
 
+# interface = gr.Interface(
+#     fn=harvard_reference_app,
+#     inputs=gr.Textbox(lines=2, placeholder="Enter URLs separated by spaces..."),
+#     outputs="text",
+#     title="Pranju❤️ Referencing Generator",
+#     description="Enter URLs to generate Harvard-style references."
+# )
+
+# interface.launch(server_name="0.0.0.0",server_port=int(os.environ.get("PORT", 8080)))
+
+
+def citation_app(input_text, style):
+    return generate_references(input_text, style)
+    
 interface = gr.Interface(
-    fn=harvard_reference_app,
-    inputs=gr.Textbox(lines=2, placeholder="Enter URLs separated by spaces..."),
+    fn=citation_app,
+    inputs=[
+        gr.Textbox(lines=2, placeholder="Enter URLs separated by spaces...", label="URLs"),
+        gr.Dropdown(
+            ["default-apa", "apa-7th-edition", "default-chicago", "default-harvard", "harvard-australia", "modern-language-association-8th-edition", "default-mla"],
+            label="Citation Style",
+            value="default-harvard",  # Default value
+            info="Select a citation style for your references."
+        )
+    ],
     outputs="text",
     title="Pranju❤️ Referencing Generator",
-    description="Enter URLs to generate Harvard-style references."
+    description="Enter URLs to generate citations in the selected style."
 )
 
-interface.launch(server_name="0.0.0.0",server_port=int(os.environ.get("PORT", 8080)))
+interface.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 8080)))
+
