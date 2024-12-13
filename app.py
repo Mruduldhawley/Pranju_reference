@@ -108,7 +108,7 @@ def reformulate_json(data, style):
 
     return reformulated_data
 
-def generate_references(urls,style):
+def generate_references(urls,style, in_text):
     urls = urls.split()  # Split input into a list of URLs
     base_get_url = "https://www.mybib.com/api/autocite/search?q={}&sourceId=webpage"
     references = ["REFERENCES<hr>"]
@@ -122,8 +122,11 @@ def generate_references(urls,style):
                 json=reformulated_json_data
             )
             formatted_reference = res.json().get("result", {}).get("formattedReferenceStr", "")
-            in_text = res.json().get("result", {}).get("formattedInTextCitationStr", "")
-            references.append(f"{count}. {formatted_reference} <br> in-text : {in_text}")
+            if in_text:
+              in_text = res.json().get("result", {}).get("formattedInTextCitationStr", "")
+              references.append(f"{count}. {formatted_reference} <br> in-text : {in_text}")
+            else:
+              references.append(f"{count}. {formatted_reference}")
             count += 1
         except Exception as e:
             references.append(f"Error processing URL {url}: {str(e)}")
@@ -145,8 +148,8 @@ def generate_references(urls,style):
 # interface.launch(server_name="0.0.0.0",server_port=int(os.environ.get("PORT", 8080)))
 
 
-def citation_app(input_text, style):
-    return generate_references(input_text, style)
+def citation_app(input_text, style, in_text):
+    return generate_references(input_text, style, in_text)
     
 interface = gr.Interface(
     fn=citation_app,
@@ -157,7 +160,8 @@ interface = gr.Interface(
             label="Citation Style",
             value="default-harvard",  # Default value
             info="Select a citation style for your references."
-        )
+        ),
+        gr.Checkbox(label="In-Text", info="To Apply In-Text Cite"),
     ],
     outputs=gr.HTML(),
     title="Pranju❤️ Referencing Generator",
